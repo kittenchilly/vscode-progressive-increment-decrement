@@ -7,3 +7,7 @@
 - New configuration "progressive.skipFirstNumber"
 ### Changed
 - Update VS Code engine to 1.54.0
+
+## [1.0.3] - 2022-01-09
+### Changed
+- Update VS Code engine to 1.63.0
