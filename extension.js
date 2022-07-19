@@ -3,7 +3,7 @@
  * https://github.com/narsenico/vscode-progressive-increment
  *
  * @author Gianfranco Caldi.
- * @version 1.0.3
+ * @version 1.0.4
  * @license MIT
  */
 const vscode = require('vscode');
