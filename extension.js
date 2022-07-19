@@ -8,6 +8,11 @@
  */
 const vscode = require('vscode');
 
+const SHOW_INPUT_BOX_OPTIONS = {
+    value: '100',
+    prompt: 'Enter incrementation value (eg: 100, -1, 0.5)',
+};
+
 /**
  * Incrementa progressivamente tutte i numeri interi trovati nelle selezioni.
  * Quindi se il primo numero trovato è 0, questo verrà portato a 0 + increment.
@@ -86,15 +91,13 @@ function readOptions({ skipFirstNumber }) {
     };
 }
 
-async function askIncrementValue(callback) {
-    const options = {
-        value: '100',
-        prompt: 'Enter incrementation value (eg: 100, -1, 0.5)',
-    };
-    const increment = +(await vscode.window.showInputBox(options));
+async function askIncrementValue(executor, testValue) {
+    const increment =
+        +testValue ||
+        +(await vscode.window.showInputBox(SHOW_INPUT_BOX_OPTIONS));
     if (increment) {
         const precision = getPrecision(increment);
-        callback(createIncrementor(increment, precision));
+        return executor(createIncrementor(increment, precision));
     }
 }
 
@@ -107,6 +110,7 @@ function fix(number, precision) {
 }
 
 function createIncrementor(increment, precision = 0) {
+    // serve per correggere la somma quando increment è un float
     return (value) => fix(value + increment, precision);
 }
 
@@ -139,12 +143,14 @@ function activate(context) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementByInput',
-            (skipFirstNumber) =>
-                askIncrementValue((incrementor) =>
-                    execIncrementBy(
-                        incrementor,
-                        readOptions({ skipFirstNumber })
-                    )
+            (skipFirstNumber, testValue) =>
+                askIncrementValue(
+                    (incrementor) =>
+                        execIncrementBy(
+                            incrementor,
+                            readOptions({ skipFirstNumber })
+                        ),
+                    testValue
                 )
         )
     );
