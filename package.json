@@ -22,7 +22,8 @@
     ],
     "activationEvents": [
         "onCommand:progressive.incrementBy1",
-        "onCommand:progressive.incrementBy10"
+        "onCommand:progressive.incrementBy10",
+        "onCommand:progressive.incrementByInput"
     ],
     "license": "MIT",
     "main": "./extension",
@@ -35,6 +36,10 @@
             {
                 "command": "progressive.incrementBy10",
                 "title": "Progressive: increment by 10"
+            },
+            {
+                "command": "progressive.incrementByInput",
+                "title": "Progressive: increment by ..."
             }
         ],
         "keybindings": [

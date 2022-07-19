@@ -86,6 +86,17 @@ function readOptions({ skipFirstNumber }) {
     };
 }
 
+async function askIncrementValue(callback) {
+    const options = {
+        value: '100',
+        prompt: 'Insert incrementation value'
+    }
+    const increment = parseInt(await vscode.window.showInputBox(options));
+    if (increment) {
+        callback(increment);
+    }
+}
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
@@ -104,6 +115,13 @@ function activate(context) {
             'progressive.incrementBy10',
             (skipFirstNumber) =>
                 execIncrementBy(10, readOptions({ skipFirstNumber }))
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'progressive.incrementByInput',
+            (skipFirstNumber) =>
+                askIncrementValue(increment => execIncrementBy(increment, readOptions({ skipFirstNumber })))
         )
     );
 }
