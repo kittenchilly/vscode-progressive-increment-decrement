@@ -10,8 +10,9 @@ const fs = require('fs').promises;
  *
  * @param {String} testfile
  * @param {String} expectedfile
+ * @param {Number} increment
  */
-async function selectAllAndIncrements(testfile, expectedfile) {
+async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     const inputText = await fs.readFile(testfile, 'utf8');
 	const skipFirstNumber = hasSkipFirstNumber(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
@@ -24,8 +25,9 @@ async function selectAllAndIncrements(testfile, expectedfile) {
     await vscode.commands.executeCommand("editor.action.selectAll");
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
-        'progressive.incrementBy1',
-        skipFirstNumber
+        'progressive.incrementByInput',
+        skipFirstNumber,
+        increment
     );
     // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
@@ -38,8 +40,9 @@ async function selectAllAndIncrements(testfile, expectedfile) {
  *
  * @param {String} testfile
  * @param {String} expectedfile
+ * @param {Number} increment
  */
-async function splitSelectionAndIncrements(testfile, expectedfile) {
+async function splitSelectionAndIncrements(testfile, expectedfile, increment = 1) {
     const inputText = await fs.readFile(testfile, 'utf8');
 	const skipFirstNumber = hasSkipFirstNumber(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
@@ -54,8 +57,9 @@ async function splitSelectionAndIncrements(testfile, expectedfile) {
     await vscode.commands.executeCommand("cursorHomeSelect");
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
-        'progressive.incrementBy1',
-        skipFirstNumber
+        'progressive.incrementByInput',
+        skipFirstNumber,
+        increment
     );
     // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
@@ -70,27 +74,6 @@ function hasSkipFirstNumber(text) {
 function normalizeText(text) {
 	return text ? text.replace(/\r\n/g, '\n') : '';
 }
-
-// async function exec(fn) {
-//     const rgTestExt = /\.test$/;
-//     // cerco tutti i file .test nella cartella cases/
-//     // per ogni file eseguo la funzione in parametro passando il percorso
-//     //  del file di test e del corrispettivo contenente il risultato aspettato dopo l'incremento
-//     const folder = path.join(__dirname, "cases");
-//     const list = await fs.readdir(folder);
-//     for (const testfile of list.filter(f => rgTestExt.test(f))) {
-// 		// if (!/test1_skipfirst/.test(testfile)) continue;
-//         const expectedfile = path.join(folder, testfile.replace(rgTestExt, '.expected'));
-//         await fn(path.join(folder, testfile), expectedfile);
-//     }
-// }
-
-// suite('Extension Tests', function () {
-//     test('Select all and increments by 1', async () =>
-//         await exec(selectAllAndIncrements));
-//     test('Split into selections and increments by 1', async () =>
-//         await exec(splitSelectionAndIncrements));
-// });
 
 suite('Select all', async function () {
     const folder = path.join(__dirname, 'cases');
@@ -119,6 +102,12 @@ suite('Select all', async function () {
         await selectAllAndIncrements(
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
+        ));
+    test('Increment all by .2: test1_float.test', async () =>
+        await selectAllAndIncrements(
+            path.join(folder, 'test1_float.test'),
+            path.join(folder, 'test1_float.expected'),
+            .2
         ));
 });
 
@@ -149,5 +138,11 @@ suite('Split selections', async function () {
         await splitSelectionAndIncrements(
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
+        ));
+    test('Increment all by .2: test1_float.test', async () =>
+        await splitSelectionAndIncrements(
+            path.join(folder, 'test1_float.test'),
+            path.join(folder, 'test1_float.expected'),
+            .2
         ));
 });
