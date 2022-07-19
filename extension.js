@@ -89,7 +89,7 @@ function readOptions({ skipFirstNumber }) {
 async function askIncrementValue(callback) {
     const options = {
         value: '100',
-        prompt: 'Insert incrementation value'
+        prompt: 'Enter incrementation value'
     }
     const increment = parseInt(await vscode.window.showInputBox(options));
     if (increment) {
