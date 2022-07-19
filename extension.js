@@ -23,13 +23,13 @@ const vscode = require('vscode');
  * ma viene comunque considerato come valore iniziale per incrementare i successivi numeri.
  * Es: 0 0 0 => 0 1 2
  *
- * @param {number} increment valore numerico di incremento
+ * @param {function} incrementor funzione di incremento
  * @param {object} options opzioni
  * - skipFirstNumber: il primo numero non viene incrementato
  * @returns {Promise|undefined} ritorna una promessa se ci sono delle selezioni
  * in cui eseguire l'opearazione, altirmenti undefined
  */
-function execIncrementBy(increment, options = { skipFirstNumber: false }) {
+function execIncrementBy(incrementor, options = { skipFirstNumber: false }) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.selections && editor.selections.length > 0) {
         return editor
@@ -50,7 +50,7 @@ function execIncrementBy(increment, options = { skipFirstNumber: false }) {
                                 return nn;
                             }
                         }
-                        let val = (refValue += increment).toString();
+                        let val = (refValue = incrementor(refValue)).toString();
                         // se il valore incrementato ha una lunghezza inferiore della stringa nn
                         // presumo che nn sia preceduta da '0'
                         if (val.length < nn.length) {
@@ -89,12 +89,25 @@ function readOptions({ skipFirstNumber }) {
 async function askIncrementValue(callback) {
     const options = {
         value: '100',
-        prompt: 'Enter incrementation value'
-    }
-    const increment = parseInt(await vscode.window.showInputBox(options));
+        prompt: 'Enter incrementation value (eg: 100, -1, 0.5)',
+    };
+    const increment = +(await vscode.window.showInputBox(options));
     if (increment) {
-        callback(increment);
+        const precision = getPrecision(increment);
+        callback(createIncrementor(increment, precision));
     }
+}
+
+function getPrecision(value) {
+    return (/\.(\d+)/.exec(value.toString()) || [])[1] || 0;
+}
+
+function fix(number, precision) {
+    return Number(number.toFixed(precision));
+}
+
+function createIncrementor(increment, precision = 0) {
+    return (value) => fix(value + increment, precision);
 }
 
 // this method is called when your extension is activated
@@ -107,21 +120,32 @@ function activate(context) {
         vscode.commands.registerCommand(
             'progressive.incrementBy1',
             (skipFirstNumber) =>
-                execIncrementBy(1, readOptions({ skipFirstNumber }))
+                execIncrementBy(
+                    createIncrementor(1),
+                    readOptions({ skipFirstNumber })
+                )
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementBy10',
             (skipFirstNumber) =>
-                execIncrementBy(10, readOptions({ skipFirstNumber }))
+                execIncrementBy(
+                    createIncrementor(10),
+                    readOptions({ skipFirstNumber })
+                )
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementByInput',
             (skipFirstNumber) =>
-                askIncrementValue(increment => execIncrementBy(increment, readOptions({ skipFirstNumber })))
+                askIncrementValue((incrementor) =>
+                    execIncrementBy(
+                        incrementor,
+                        readOptions({ skipFirstNumber })
+                    )
+                )
         )
     );
 }
