@@ -10,19 +10,20 @@ const fs = require('fs').promises;
  *
  * @param {String} testfile
  * @param {String} expectedfile
- * @param {Number} increment
  */
 async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     const inputText = await fs.readFile(testfile, 'utf8');
-	const skipFirstNumber = hasSkipFirstNumber(inputText);
+    const skipFirstNumber = hasSkipFirstNumber(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
     const document = await vscode.workspace.openTextDocument();
     const editor = await vscode.window.showTextDocument(document);
-    await editor.edit(editBuilder => editBuilder.insert(new vscode.Position(0, 0), inputText));
+    await editor.edit((editBuilder) =>
+        editBuilder.insert(new vscode.Position(0, 0), inputText)
+    );
     // mi assicuro che l'editor del documento sia quello attivo
     assert.deepStrictEqual(editor, vscode.window.activeTextEditor);
     // seleziono tutto
-    await vscode.commands.executeCommand("editor.action.selectAll");
+    await vscode.commands.executeCommand('editor.action.selectAll');
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
@@ -32,7 +33,11 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    assert.strictEqual(text, expectedText, `File: '${testfile}' skipFirstNumber=${skipFirstNumber}`);
+    assert.strictEqual(
+        text,
+        expectedText,
+        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber}`
+    );
 }
 
 /**
@@ -40,21 +45,28 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
  *
  * @param {String} testfile
  * @param {String} expectedfile
- * @param {Number} increment
  */
-async function splitSelectionAndIncrements(testfile, expectedfile, increment = 1) {
+async function splitSelectionAndIncrements(
+    testfile,
+    expectedfile,
+    increment = 1
+) {
     const inputText = await fs.readFile(testfile, 'utf8');
-	const skipFirstNumber = hasSkipFirstNumber(inputText);
+    const skipFirstNumber = hasSkipFirstNumber(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
     const document = await vscode.workspace.openTextDocument();
     const editor = await vscode.window.showTextDocument(document);
-    await editor.edit(editBuilder => editBuilder.insert(new vscode.Position(0, 0), inputText));
+    await editor.edit((editBuilder) =>
+        editBuilder.insert(new vscode.Position(0, 0), inputText)
+    );
     // mi assicuro che l'editor del documento sia quello attivo
     assert.deepStrictEqual(editor, vscode.window.activeTextEditor);
     // seleziono tutto e splitto la selezione su ogni riga
-    await vscode.commands.executeCommand("editor.action.selectAll");
-    await vscode.commands.executeCommand("editor.action.insertCursorAtEndOfEachLineSelected");
-    await vscode.commands.executeCommand("cursorHomeSelect");
+    await vscode.commands.executeCommand('editor.action.selectAll');
+    await vscode.commands.executeCommand(
+        'editor.action.insertCursorAtEndOfEachLineSelected'
+    );
+    await vscode.commands.executeCommand('cursorHomeSelect');
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
@@ -64,7 +76,11 @@ async function splitSelectionAndIncrements(testfile, expectedfile, increment = 1
     // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
-    assert.strictEqual(text, expectedText, `File: '${testfile}' skipFirstNumber=${skipFirstNumber}`);
+    assert.strictEqual(
+        text,
+        expectedText,
+        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber}`
+    );
 }
 
 function hasSkipFirstNumber(text) {
@@ -72,7 +88,7 @@ function hasSkipFirstNumber(text) {
 }
 
 function normalizeText(text) {
-	return text ? text.replace(/\r\n/g, '\n') : '';
+    return text ? text.replace(/\r\n/g, '\n') : '';
 }
 
 suite('Select all', async function () {
@@ -103,6 +119,12 @@ suite('Select all', async function () {
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
         ));
+    test('Increment all by 100: test5.test', async () =>
+        await selectAllAndIncrements(
+            path.join(folder, 'test5.test'),
+            path.join(folder, 'test5.expected'),
+            100
+        ));
 });
 
 suite('Split selections', async function () {
@@ -132,5 +154,11 @@ suite('Split selections', async function () {
         await splitSelectionAndIncrements(
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
+        ));
+    test('Increment all by 100: test5.test', async () =>
+        await splitSelectionAndIncrements(
+            path.join(folder, 'test5.test'),
+            path.join(folder, 'test5.expected'),
+            100
         ));
 });
