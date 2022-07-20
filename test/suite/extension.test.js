@@ -103,12 +103,6 @@ suite('Select all', async function () {
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
         ));
-    test('Increment all by .2: test1_float.test', async () =>
-        await selectAllAndIncrements(
-            path.join(folder, 'test1_float.test'),
-            path.join(folder, 'test1_float.expected'),
-            .2
-        ));
 });
 
 suite('Split selections', async function () {
@@ -138,11 +132,5 @@ suite('Split selections', async function () {
         await splitSelectionAndIncrements(
             path.join(folder, 'test1_skipfirst.test'),
             path.join(folder, 'test1_skipfirst.expected')
-        ));
-    test('Increment all by .2: test1_float.test', async () =>
-        await splitSelectionAndIncrements(
-            path.join(folder, 'test1_float.test'),
-            path.join(folder, 'test1_float.expected'),
-            .2
         ));
 });

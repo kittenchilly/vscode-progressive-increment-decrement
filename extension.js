@@ -10,7 +10,7 @@ const vscode = require('vscode');
 
 const SHOW_INPUT_BOX_OPTIONS = {
     value: '100',
-    prompt: 'Enter incrementation value (eg: 100, -1, 0.5)',
+    prompt: 'Enter incrementation value',
 };
 
 /**
@@ -94,24 +94,15 @@ function readOptions({ skipFirstNumber }) {
 async function askIncrementValue(executor, testValue) {
     const increment =
         +testValue ||
-        +(await vscode.window.showInputBox(SHOW_INPUT_BOX_OPTIONS));
-    if (increment) {
-        const precision = getPrecision(increment);
-        return executor(createIncrementor(increment, precision));
+        parseInt(await vscode.window.showInputBox(SHOW_INPUT_BOX_OPTIONS));
+    if (increment > 0) {
+        return executor(createIncrementor(increment));
     }
 }
 
-function getPrecision(value) {
-    return (/\.(\d+)/.exec(value.toString()) || [])[1] || 0;
-}
-
-function fix(number, precision) {
-    return Number(number.toFixed(precision));
-}
-
-function createIncrementor(increment, precision = 0) {
-    // serve per correggere la somma quando increment è un float
-    return (value) => fix(value + increment, precision);
+function createIncrementor(increment) {
+    // sarà utile per future evoluzioni, ad esempio per valori float
+    return (value) => value + increment;
 }
 
 // this method is called when your extension is activated
