@@ -11,6 +11,7 @@ Increments progressively integer values found in selection(s) by 1 or 10.
 ## Commands:
 - Progressive: increment by 1
 - Progressive: increment by 10
+- Progressive: increment by ...
 
 ## Settings:
 - ```progressive.skipFirstNumber```:
