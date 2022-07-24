@@ -11,3 +11,7 @@
 ## [1.0.3] - 2022-01-09
 ### Changed
 - Update VS Code engine to 1.63.0
+
+## [1.0.4] - 2022-xx-xx
+### Changed
+- New command "Progressive: increment by ..." where the increment value is entered by the user
