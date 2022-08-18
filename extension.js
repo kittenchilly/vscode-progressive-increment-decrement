@@ -40,45 +40,75 @@ function execIncrementBy(incrementor, options = { skipFirstNumber: false }) {
         return editor
             .edit((editBuilder) => {
                 const selections = editor.selections;
-                let selectionText, replacedText;
-                let refValue;
-                for (let ii = 0; ii < selections.length; ii++) {
-                    selectionText = editor.document.getText(selections[ii]);
-                    // cerco tutte le porzioni di stringa contenente valori numerici
-                    // e li incremento considerando come valore iniziale il primo numero trovato
-                    // cerco di mantenere
-                    replacedText = selectionText.replace(/\d+/g, (nn) => {
-                        if (refValue === undefined) {
-                            refValue = +nn;
-                            // se devo skippare il primo valore esco subito
-                            if (options.skipFirstNumber) {
-                                return nn;
-                            }
-                        }
-                        let val = (refValue = incrementor(refValue)).toString();
-                        // se il valore incrementato ha una lunghezza inferiore della stringa nn
-                        // presumo che nn sia preceduta da '0'
-                        if (val.length < nn.length) {
-                            // aggiungo tanti '0' davanti al valore
-                            val =
-                                Array(nn.length - val.length)
-                                    .fill('0')
-                                    .join('') + val;
-                        }
-                        return val;
-                    });
-
-                    if (selectionText != replacedText) {
-                        editBuilder.replace(selections[ii], replacedText);
-                    }
-                }
-            }) /* .then(resp => {
-            console.log('>>> Edit could be applied:', resp);
-        }) */
+                const document = editor.document;
+                const replace = createReplacer({
+                    editBuilder,
+                    document,
+                    incrementor,
+                    options,
+                });
+                selections.forEach((selection) => {
+                    replace(selection);
+                });
+            })
             .catch((err) => {
                 console.error(err);
             });
     }
+}
+
+function createReplacer({ editBuilder, document, incrementor, options }) {
+    let refValue;
+    return (range) => {
+        refValue = replace({
+            editBuilder,
+            document,
+            range,
+            incrementor,
+            refValue,
+            options,
+        });
+    };
+}
+
+function replace({
+    editBuilder,
+    document,
+    range,
+    incrementor,
+    refValue,
+    options,
+}) {
+    const selectionText = document.getText(range);
+    // cerco tutte le porzioni di stringa contenente valori numerici
+    // e li incremento considerando come valore iniziale il primo numero trovato
+    // cerco di mantenere
+    const replacedText = selectionText.replace(/\d+/g, (nn) => {
+        if (refValue === undefined) {
+            refValue = +nn;
+            // se devo skippare il primo valore esco subito
+            if (options.skipFirstNumber) {
+                return nn;
+            }
+        }
+        let val = (refValue = incrementor(refValue)).toString();
+        // se il valore incrementato ha una lunghezza inferiore della stringa nn
+        // presumo che nn sia preceduta da '0'
+        if (val.length < nn.length) {
+            // aggiungo tanti '0' davanti al valore
+            val =
+                Array(nn.length - val.length)
+                    .fill('0')
+                    .join('') + val;
+        }
+        return val;
+    });
+
+    if (selectionText != replacedText) {
+        editBuilder.replace(range, replacedText);
+    }
+
+    return refValue;
 }
 
 function readOptions({ skipFirstNumber }) {
