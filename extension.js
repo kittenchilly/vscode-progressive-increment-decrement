@@ -70,7 +70,7 @@ function isZeroLengthSelection(selection) {
     return selection.anchor.isEqual(selection.active);
 }
 
-function getRangeOfNumberBefore(selection, line) {
+function tryGetRangeOfNumberBefore(selection, line) {
     const textBefore = line.text.substring(0, selection.anchor.character);
     const numberBeforeAnchor = /\d+$/.exec(textBefore);
     if (numberBeforeAnchor) {
@@ -83,25 +83,24 @@ function getRangeOfNumberBefore(selection, line) {
     return null;
 }
 
-function getRangeOfNumberAfter(selection, line) {
-    // TODO
-    // const textBefore = line.text.substring(0, selection.anchor.character);
-    // const numberBeforeAnchor = /\d+$/.exec(textBefore);
-    // if (numberBeforeAnchor) {
-    //     const start = numberBeforeAnchor.index;
-    //     const startPosition = selection.anchor.with({
-    //         character: start,
-    //     });
-    //     return new vscode.Range(startPosition, selection.anchor);
-    // }
+function tryGetRangeOfNumberAfter(selection, line) {
+    const textAfter = line.text.substring(selection.anchor.character);
+    const numberAfterAnchor = /^\d+/.exec(textAfter);
+    if (numberAfterAnchor) {
+        const end = selection.anchor.character + numberAfterAnchor[0].length;
+        const endPosition = selection.anchor.with({
+            character: end,
+        });
+        return new vscode.Range(selection.anchor, endPosition);
+    }
     return null;
 }
 
 function replaceAfterOrBefore({ document, selection, replace }) {
     const line = document.lineAt(selection.anchor);
     const range =
-        getRangeOfNumberBefore(selection, line) ||
-        getRangeOfNumberAfter(selection, line);
+        tryGetRangeOfNumberBefore(selection, line) ||
+        tryGetRangeOfNumberAfter(selection, line);
     if (range) {
         replace(range);
     }
@@ -110,7 +109,7 @@ function replaceAfterOrBefore({ document, selection, replace }) {
 function createReplacer({ editBuilder, document, incrementor, options }) {
     let refValue;
     return (range) => {
-        refValue = replace({
+        refValue = replaceInline({
             editBuilder,
             document,
             range,
@@ -121,7 +120,7 @@ function createReplacer({ editBuilder, document, incrementor, options }) {
     };
 }
 
-function replace({
+function replaceInline({
     editBuilder,
     document,
     range,
@@ -146,10 +145,7 @@ function replace({
         // presumo che nn sia preceduta da '0'
         if (val.length < nn.length) {
             // aggiungo tanti '0' davanti al valore
-            val =
-                Array(nn.length - val.length)
-                    .fill('0')
-                    .join('') + val;
+            val = val.padStart(nn.length, '0');
         }
         return val;
     });
