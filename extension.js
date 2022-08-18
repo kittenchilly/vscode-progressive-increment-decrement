@@ -30,11 +30,15 @@ const SHOW_INPUT_BOX_OPTIONS = {
  *
  * @param {function} incrementor funzione di incremento
  * @param {object} options opzioni
- * - skipFirstNumber: il primo numero non viene incrementato
+ * - skipFirstNumber: se true il primo numero non viene incrementato
+ * - allowZeroLengthSelection: se true in caso di selezione lunga 0 incrementa il numero alla sinistra del cursore oppure alla destra
  * @returns {Promise|undefined} ritorna una promessa se ci sono delle selezioni
  * in cui eseguire l'opearazione, altirmenti undefined
  */
-function execIncrementBy(incrementor, options = { skipFirstNumber: false }) {
+function execIncrementBy(
+    incrementor,
+    { skipFirstNumber = false, allowZeroLengthSelection = false } = {}
+) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.selections && editor.selections.length > 0) {
         return editor
@@ -45,16 +49,17 @@ function execIncrementBy(incrementor, options = { skipFirstNumber: false }) {
                     editBuilder,
                     document,
                     incrementor,
-                    options,
+                    options: { skipFirstNumber, allowZeroLengthSelection },
                 });
                 selections.forEach((selection) => {
                     if (isZeroLengthSelection(selection)) {
-                        // TODO: solo se c'è opzione attiva
-                        replaceAfterOrBefore({
-                            document,
-                            selection,
-                            replace,
-                        });
+                        if (allowZeroLengthSelection) {
+                            replaceBeforeOrAfter({
+                                document,
+                                selection,
+                                replace,
+                            });
+                        }
                     } else {
                         replace(selection);
                     }
@@ -96,7 +101,7 @@ function tryGetRangeOfNumberAfter(selection, line) {
     return null;
 }
 
-function replaceAfterOrBefore({ document, selection, replace }) {
+function replaceBeforeOrAfter({ document, selection, replace }) {
     const line = document.lineAt(selection.anchor);
     const range =
         tryGetRangeOfNumberBefore(selection, line) ||
@@ -157,13 +162,17 @@ function replaceInline({
     return refValue;
 }
 
-function readOptions({ skipFirstNumber }) {
+function readOptions({ skipFirstNumber, allowZeroLengthSelection }) {
     const config = vscode.workspace.getConfiguration('progressive');
     return {
         skipFirstNumber:
             skipFirstNumber === undefined
                 ? config.skipFirstNumber
                 : skipFirstNumber,
+        allowZeroLengthSelection:
+            allowZeroLengthSelection === undefined
+                ? config.allowZeroLengthSelection
+                : allowZeroLengthSelection,
     };
 }
 
@@ -190,32 +199,35 @@ function activate(context) {
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementBy1',
-            (skipFirstNumber) =>
+            (skipFirstNumber, allowZeroLengthSelection) =>
                 execIncrementBy(
                     createIncrementor(1),
-                    readOptions({ skipFirstNumber })
+                    readOptions({ skipFirstNumber, allowZeroLengthSelection })
                 )
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementBy10',
-            (skipFirstNumber) =>
+            (skipFirstNumber, allowZeroLengthSelection) =>
                 execIncrementBy(
                     createIncrementor(10),
-                    readOptions({ skipFirstNumber })
+                    readOptions({ skipFirstNumber, allowZeroLengthSelection })
                 )
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementByInput',
-            (skipFirstNumber, testValue) =>
+            (skipFirstNumber, allowZeroLengthSelection, testValue) =>
                 askIncrementValue(
                     (incrementor) =>
                         execIncrementBy(
                             incrementor,
-                            readOptions({ skipFirstNumber })
+                            readOptions({
+                                skipFirstNumber,
+                                allowZeroLengthSelection,
+                            })
                         ),
                     testValue
                 )

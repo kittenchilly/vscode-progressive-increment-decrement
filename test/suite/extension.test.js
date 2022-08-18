@@ -14,6 +14,7 @@ const fs = require('fs').promises;
 async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     const inputText = await fs.readFile(testfile, 'utf8');
     const skipFirstNumber = hasSkipFirstNumber(inputText);
+    const allowZeroLengthSelection = hasAllowZeroLengthSelection(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
     const document = await vscode.workspace.openTextDocument();
     const editor = await vscode.window.showTextDocument(document);
@@ -28,6 +29,7 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
         skipFirstNumber,
+        allowZeroLengthSelection,
         increment
     );
     // verifico che il testo modificato sia corretto
@@ -36,7 +38,7 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     assert.strictEqual(
         text,
         expectedText,
-        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber}`
+        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber} allowZeroLengthSelection=${allowZeroLengthSelection}`
     );
 }
 
@@ -53,6 +55,7 @@ async function splitSelectionAndIncrements(
 ) {
     const inputText = await fs.readFile(testfile, 'utf8');
     const skipFirstNumber = hasSkipFirstNumber(inputText);
+    const allowZeroLengthSelection = hasAllowZeroLengthSelection(inputText);
     const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
     const document = await vscode.workspace.openTextDocument();
     const editor = await vscode.window.showTextDocument(document);
@@ -71,6 +74,7 @@ async function splitSelectionAndIncrements(
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
         skipFirstNumber,
+        allowZeroLengthSelection,
         increment
     );
     // verifico che il testo modificato sia corretto
@@ -79,12 +83,16 @@ async function splitSelectionAndIncrements(
     assert.strictEqual(
         text,
         expectedText,
-        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber}`
+        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber} allowZeroLengthSelection=${allowZeroLengthSelection}`
     );
 }
 
 function hasSkipFirstNumber(text) {
     return /^##.*skipFirstNumber.*\n/i.test(text);
+}
+
+function hasAllowZeroLengthSelection(text) {
+    return /^##.*allowZeroLengthSelection.*\n/i.test(text);
 }
 
 function normalizeText(text) {

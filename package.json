@@ -63,6 +63,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Skip first number in selection"
+                },
+                "progressive.allowZeroLengthSelection": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Allow increment of number before or after the cursor in case of zero length selection"
                 }
             }
         }
