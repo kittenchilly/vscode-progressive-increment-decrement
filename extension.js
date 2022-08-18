@@ -3,7 +3,7 @@
  * https://github.com/narsenico/vscode-progressive-increment
  *
  * @author Gianfranco Caldi.
- * @version 1.0.4
+ * @version 1.0.5
  * @license MIT
  */
 const vscode = require('vscode');
@@ -48,12 +48,62 @@ function execIncrementBy(incrementor, options = { skipFirstNumber: false }) {
                     options,
                 });
                 selections.forEach((selection) => {
-                    replace(selection);
+                    if (isZeroLengthSelection(selection)) {
+                        // TODO: solo se c'è opzione attiva
+                        replaceAfterOrBefore({
+                            document,
+                            selection,
+                            replace,
+                        });
+                    } else {
+                        replace(selection);
+                    }
                 });
             })
             .catch((err) => {
                 console.error(err);
             });
+    }
+}
+
+function isZeroLengthSelection(selection) {
+    return selection.anchor.isEqual(selection.active);
+}
+
+function getRangeOfNumberBefore(selection, line) {
+    const textBefore = line.text.substring(0, selection.anchor.character);
+    const numberBeforeAnchor = /\d+$/.exec(textBefore);
+    if (numberBeforeAnchor) {
+        const start = numberBeforeAnchor.index;
+        const startPosition = selection.anchor.with({
+            character: start,
+        });
+        return new vscode.Range(startPosition, selection.anchor);
+    }
+    return null;
+}
+
+function getRangeOfNumberAfter(selection, line) {
+    // TODO
+    // const textBefore = line.text.substring(0, selection.anchor.character);
+    // const numberBeforeAnchor = /\d+$/.exec(textBefore);
+    // if (numberBeforeAnchor) {
+    //     const start = numberBeforeAnchor.index;
+    //     const startPosition = selection.anchor.with({
+    //         character: start,
+    //     });
+    //     return new vscode.Range(startPosition, selection.anchor);
+    // }
+    return null;
+}
+
+function replaceAfterOrBefore({ document, selection, replace }) {
+    const line = document.lineAt(selection.anchor);
+    const range =
+        getRangeOfNumberBefore(selection, line) ||
+        getRangeOfNumberAfter(selection, line);
+    if (range) {
+        replace(range);
     }
 }
 
