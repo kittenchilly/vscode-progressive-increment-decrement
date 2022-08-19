@@ -12,6 +12,10 @@
 ### Changed
 - Update VS Code engine to 1.63.0
 
-## [1.0.4] - 2022-xx-xx
+## [1.0.4] - 2022-07-24
 ### Changed
 - New command "Progressive: increment by ..." where the increment value is entered by the user
+
+## [1.0.5] - 2022-08-19
+### Added
+- New configuration "progressive.allowZeroLengthSelection"

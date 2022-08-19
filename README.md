@@ -16,6 +16,8 @@ Increments progressively integer values found in selection(s) by 1 or 10.
 ## Settings:
 - ```progressive.skipFirstNumber```:
 if true the first number will not be changed (default **false**).
+- ```progressive.allowZeroLengthSelection```:
+if true increments the number before or after the cursor in case of zero length selection (default **false**).
 
 ## Shortcuts:
 
