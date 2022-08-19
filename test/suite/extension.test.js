@@ -21,17 +21,13 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     await editor.edit((editBuilder) =>
         editBuilder.insert(new vscode.Position(0, 0), inputText)
     );
-    // mi assicuro che l'editor del documento sia quello attivo
     assert.deepStrictEqual(editor, vscode.window.activeTextEditor);
-    // seleziono tutto
-    await vscode.commands.executeCommand('editor.action.selectAll');
-    // incremento tutti i numeri trovati nella selezione di 1
+    await selectAllButFirstLine();
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
         { skipFirstNumber, allowZeroLengthSelection },
         increment
     );
-    // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     assert.strictEqual(
@@ -61,21 +57,14 @@ async function splitSelectionAndIncrements(
     await editor.edit((editBuilder) =>
         editBuilder.insert(new vscode.Position(0, 0), inputText)
     );
-    // mi assicuro che l'editor del documento sia quello attivo
     assert.deepStrictEqual(editor, vscode.window.activeTextEditor);
-    // seleziono tutto e splitto la selezione su ogni riga
-    await vscode.commands.executeCommand('editor.action.selectAll');
-    await vscode.commands.executeCommand(
-        'editor.action.insertCursorAtEndOfEachLineSelected'
-    );
-    await vscode.commands.executeCommand('cursorHomeSelect');
-    // incremento tutti i numeri trovati nella selezione di 1
+    await selectAllButFirstLine();
+    await splitLinesAndSelect();
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
         { skipFirstNumber, allowZeroLengthSelection },
         increment
     );
-    // verifico che il testo modificato sia corretto
     const text = normalizeText(editor.document.getText());
     await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
     assert.strictEqual(
@@ -85,12 +74,78 @@ async function splitSelectionAndIncrements(
     );
 }
 
+async function selectAllLineStartsAndIncrements(
+    testfile,
+    expectedfile,
+    increment = 1
+) {
+    const inputText = await fs.readFile(testfile, 'utf8');
+    const skipFirstNumber = hasSkipFirstNumber(inputText);
+    const allowZeroLengthSelection = hasAllowZeroLengthSelection(inputText);
+    const cursorMoveArgs = tryGetCursorMoveArgs(inputText);
+    const expectedText = normalizeText(await fs.readFile(expectedfile, 'utf8'));
+    const document = await vscode.workspace.openTextDocument();
+    const editor = await vscode.window.showTextDocument(document);
+    await editor.edit((editBuilder) =>
+        editBuilder.insert(new vscode.Position(0, 0), inputText)
+    );
+    assert.deepStrictEqual(editor, vscode.window.activeTextEditor);
+    await selectAllButFirstLine();
+    await splitLinesAndGoHome();
+    if (cursorMoveArgs) {
+        await vscode.commands.executeCommand('cursorMove', cursorMoveArgs);
+    }
+    await vscode.commands.executeCommand(
+        'progressive.incrementByInput',
+        { skipFirstNumber, allowZeroLengthSelection },
+        increment
+    );
+    const text = normalizeText(editor.document.getText());
+    await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+    assert.strictEqual(
+        text,
+        expectedText,
+        `File: '${testfile}' increment=${increment} skipFirstNumber=${skipFirstNumber} allowZeroLengthSelection=${allowZeroLengthSelection}`
+    );
+}
+
+async function selectAllButFirstLine() {
+    await vscode.commands.executeCommand('cursorTopSelect');
+    await vscode.commands.executeCommand('cursorMove', {
+        to: 'down',
+        by: 'line',
+        value: 1,
+        select: true,
+    });
+}
+
+async function splitLinesAndGoHome() {
+    await vscode.commands.executeCommand(
+        'editor.action.insertCursorAtEndOfEachLineSelected'
+    );
+    await vscode.commands.executeCommand('cursorHome');
+}
+
+async function splitLinesAndSelect() {
+    await vscode.commands.executeCommand(
+        'editor.action.insertCursorAtEndOfEachLineSelected'
+    );
+    await vscode.commands.executeCommand('cursorHomeSelect');
+}
+
 function hasSkipFirstNumber(text) {
     return /^##.*skipFirstNumber.*\n/i.test(text);
 }
 
 function hasAllowZeroLengthSelection(text) {
     return /^##.*allowZeroLengthSelection.*\n/i.test(text);
+}
+
+function tryGetCursorMoveArgs(text) {
+    const arr = /^##.*cursorMove:(\{.*\}).*\n/.exec(text);
+    if (arr && arr[1]) {
+        return JSON.parse(arr[1]);
+    }
 }
 
 function normalizeText(text) {
@@ -166,5 +221,30 @@ suite('Split selections', async function () {
             path.join(folder, 'test5.test'),
             path.join(folder, 'test5.expected'),
             100
+        ));
+});
+
+suite('Split selections and move cursor', async function () {
+    const folder = path.join(__dirname, 'cases');
+
+    test('Increment all by 1: test1.test', async () =>
+        await selectAllLineStartsAndIncrements(
+            path.join(folder, 'test1.test'),
+            path.join(folder, 'test1.expected')
+        ));
+    test('Increment all by 1: test2.test', async () =>
+        await selectAllLineStartsAndIncrements(
+            path.join(folder, 'test2.test'),
+            path.join(folder, 'test2.expected')
+        ));
+    test('Increment all by 1: test6.test', async () =>
+        await selectAllLineStartsAndIncrements(
+            path.join(folder, 'test6.test'),
+            path.join(folder, 'test6.expected')
+        ));
+    test('Increment all by 1: test7.test', async () =>
+        await selectAllLineStartsAndIncrements(
+            path.join(folder, 'test7.test'),
+            path.join(folder, 'test7.expected')
         ));
 });
