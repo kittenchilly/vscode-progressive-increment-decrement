@@ -162,7 +162,7 @@ function replaceInline({
     return refValue;
 }
 
-function readOptions({ skipFirstNumber, allowZeroLengthSelection }) {
+function makeOptions({ skipFirstNumber, allowZeroLengthSelection } = {}) {
     const config = vscode.workspace.getConfiguration('progressive');
     return {
         skipFirstNumber:
@@ -197,38 +197,24 @@ function activate(context) {
     // i comandi devono ritornare sempre altrimenti vscode non sa quando finiscono
     // (e i test non funzionano)
     context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'progressive.incrementBy1',
-            (skipFirstNumber, allowZeroLengthSelection) =>
-                execIncrementBy(
-                    createIncrementor(1),
-                    readOptions({ skipFirstNumber, allowZeroLengthSelection })
-                )
+        vscode.commands.registerCommand('progressive.incrementBy1', (options) =>
+            execIncrementBy(createIncrementor(1), makeOptions(options))
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementBy10',
-            (skipFirstNumber, allowZeroLengthSelection) =>
-                execIncrementBy(
-                    createIncrementor(10),
-                    readOptions({ skipFirstNumber, allowZeroLengthSelection })
-                )
+            (options) =>
+                execIncrementBy(createIncrementor(10), makeOptions(options))
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementByInput',
-            (skipFirstNumber, allowZeroLengthSelection, testValue) =>
+            (options, testValue) =>
                 askIncrementValue(
                     (incrementor) =>
-                        execIncrementBy(
-                            incrementor,
-                            readOptions({
-                                skipFirstNumber,
-                                allowZeroLengthSelection,
-                            })
-                        ),
+                        execIncrementBy(incrementor, makeOptions(options)),
                     testValue
                 )
         )

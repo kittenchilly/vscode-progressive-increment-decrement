@@ -28,8 +28,7 @@ async function selectAllAndIncrements(testfile, expectedfile, increment = 1) {
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
-        skipFirstNumber,
-        allowZeroLengthSelection,
+        { skipFirstNumber, allowZeroLengthSelection },
         increment
     );
     // verifico che il testo modificato sia corretto
@@ -73,8 +72,7 @@ async function splitSelectionAndIncrements(
     // incremento tutti i numeri trovati nella selezione di 1
     await vscode.commands.executeCommand(
         'progressive.incrementByInput',
-        skipFirstNumber,
-        allowZeroLengthSelection,
+        { skipFirstNumber, allowZeroLengthSelection },
         increment
     );
     // verifico che il testo modificato sia corretto
