@@ -32,43 +32,41 @@ const SHOW_INPUT_BOX_OPTIONS = {
  * @param {object} options opzioni
  * - skipFirstNumber: se true il primo numero non viene incrementato
  * - allowZeroLengthSelection: se true in caso di selezione lunga 0 incrementa il numero alla sinistra del cursore oppure alla destra
- * @returns {Promise|undefined} ritorna una promessa se ci sono delle selezioni
- * in cui eseguire l'opearazione, altirmenti undefined
+ * @returns {Promise} A promise that resolves with a value indicating if the edits could be applied.
  */
-function execIncrementBy(
-    incrementor,
-    { skipFirstNumber = false, allowZeroLengthSelection = false } = {}
-) {
+async function execIncrementBy(incrementor, options) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.selections && editor.selections.length > 0) {
-        return editor
-            .edit((editBuilder) => {
-                const selections = editor.selections;
-                const document = editor.document;
-                const replace = createReplacer({
-                    editBuilder,
-                    document,
-                    incrementor,
-                    options: { skipFirstNumber, allowZeroLengthSelection },
-                });
-                selections.forEach((selection) => {
-                    if (isZeroLengthSelection(selection)) {
-                        if (allowZeroLengthSelection) {
-                            replaceBeforeOrAfter({
-                                document,
-                                selection,
-                                replace,
-                            });
-                        }
-                    } else {
-                        replace(selection);
-                    }
-                });
-            })
-            .catch((err) => {
-                console.error(err);
-            });
+        const edit = createEditCallback(editor, incrementor, options);
+        return editor.edit(edit);
     }
+    return Promise.resolve(false);
+}
+
+function createEditCallback(editor, incrementor, options) {
+    return (editBuilder) => {
+        const selections = editor.selections;
+        const document = editor.document;
+        const replace = createReplacer({
+            editBuilder,
+            document,
+            incrementor,
+            options,
+        });
+        selections.forEach((selection) => {
+            if (isZeroLengthSelection(selection)) {
+                if (options.allowZeroLengthSelection) {
+                    replaceBeforeOrAfter({
+                        document,
+                        selection,
+                        replace,
+                    });
+                }
+            } else {
+                replace(selection);
+            }
+        });
+    };
 }
 
 function isZeroLengthSelection(selection) {
