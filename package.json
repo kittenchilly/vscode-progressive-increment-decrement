@@ -6,7 +6,7 @@
     "publisher": "narsenico",
     "icon": "icon.png",
     "engines": {
-        "vscode": "^1.63.0"
+        "vscode": "^1.70.0"
     },
     "repository": {
         "type": "git",

@@ -19,3 +19,5 @@
 ## [1.0.5] - 2022-08-19
 ### Added
 - New configuration "progressive.allowZeroLengthSelection"
+### Changed
+- Update VS Code engine to 1.70.0
