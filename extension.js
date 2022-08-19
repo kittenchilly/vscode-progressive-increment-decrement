@@ -34,7 +34,7 @@ const SHOW_INPUT_BOX_OPTIONS = {
  * - allowZeroLengthSelection: se true in caso di selezione lunga 0 incrementa il numero alla sinistra del cursore oppure alla destra
  * @returns {Promise} A promise that resolves with a value indicating if the edits could be applied.
  */
-async function execIncrementBy(incrementor, options) {
+async function execIncrementWith(incrementor, options) {
     const editor = vscode.window.activeTextEditor;
     if (editor && editor.selections && editor.selections.length > 0) {
         const edit = createEditCallback(editor, incrementor, options);
@@ -196,14 +196,14 @@ function activate(context) {
     // (e i test non funzionano)
     context.subscriptions.push(
         vscode.commands.registerCommand('progressive.incrementBy1', (options) =>
-            execIncrementBy(createIncrementor(1), makeOptions(options))
+            execIncrementWith(createIncrementor(1), makeOptions(options))
         )
     );
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'progressive.incrementBy10',
             (options) =>
-                execIncrementBy(createIncrementor(10), makeOptions(options))
+                execIncrementWith(createIncrementor(10), makeOptions(options))
         )
     );
     context.subscriptions.push(
@@ -212,7 +212,7 @@ function activate(context) {
             (options, testValue) =>
                 askIncrementValue(
                     (incrementor) =>
-                        execIncrementBy(incrementor, makeOptions(options)),
+                        execIncrementWith(incrementor, makeOptions(options)),
                     testValue
                 )
         )
