@@ -25,11 +25,11 @@ if true increments or decrememnts the number before or after the cursor in case 
 ### Win\Linux:
 - Increment by 1:  <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>i</kbd>
 - Increment by 10: <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>i</kbd>
-- Increment by 1:  <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>d</kbd>
-- Increment by 10: <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>d</kbd>
+- Decrement by 1:  <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>d</kbd>
+- Decrement by 10: <kbd>ctrl</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>d</kbd>
 
 ### Mac:
 - Increment by 1:  <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>i</kbd>
 - Increment by 10: <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>i</kbd>
-- Increment by 1:  <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>d</kbd>
-- Increment by 10: <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>d</kbd>
+- Decrement by 1:  <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>d</kbd>
+- Decrement by 10: <kbd>cmd</kbd> + <kbd>alt</kbd> + <kbd>shift</kbd> + <kbd>d</kbd>
