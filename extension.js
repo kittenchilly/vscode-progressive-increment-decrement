@@ -1,8 +1,8 @@
 /*!
  * vscode-progressive-increment
- * https://github.com/narsenico/vscode-progressive-increment
+ * https://github.com/kittenchilly/vscode-progressive-increment-decrement
  *
- * @author Gianfranco Caldi.
+ * @author Gianfranco Caldi, kittenchilly.
  * @version 1.0.5
  * @license MIT
  */
@@ -14,25 +14,20 @@ const SHOW_INPUT_BOX_OPTIONS = {
 };
 
 /**
- * Incrementa progressivamente tutte i numeri interi trovati nelle selezioni.
- * Quindi se il primo numero trovato è 0, questo verrà portato a 0 + increment.
- * Per i numeri successivi non importa il loro valore attuale, verranno sempre incrementati
- * rispetto al numero precedente.
- * Se possibile cerca sempre di mantenere la lunghezza del numero originale nel caso fillando con
- * degli '0'.
- * Es: 0 0 0 => 1 2 3
- * Es: 00 00 00 => 01 02 03
- * Es: 0 10 12 => 1 02 03
+ *Progressively increment all integers found in selections.
+ *So if the first number found is 0, this will be increased to 0 + increment.
+ *For subsequent numbers, their current value does not matter, they will always be incremented
+ *compared to the previous number.
+ *If possible always try to keep the length of the original number when filling with
+ *of the '0'.
+ *Ex: 0 0 0 => 1 2 3
+ *Ex: 00 00 00 => 01 02 03
+ *Ex: 0 10 12 => 1 02 03
  *
- * Se è attiva l'opzione skipFirstNumber il primo numero trovato nelle selezioni non viene incrementato,
- * ma viene comunque considerato come valore iniziale per incrementare i successivi numeri.
- * Es: 0 0 0 => 0 1 2
- *
- * @param {function} incrementor funzione di incremento
- * @param {object} options opzioni
- * - skipFirstNumber: se true il primo numero non viene incrementato
- * - allowZeroLengthSelection: se true in caso di selezione lunga 0 incrementa il numero alla sinistra del cursore oppure alla destra
- * @returns {Promise} A promise that resolves with a value indicating if the edits could be applied.
+ *@param {function} incrementer increment function
+ *@param {object} options options
+*-allowZeroLengthSelection: if true in case of long selection 0 increases the number to the left of the cursor or to the right
+ *@returns {Promise} A promise that resolves with a value indicating if the edits could be applied.
  */
 async function execIncrementWith(incrementor, options) {
     const editor = vscode.window.activeTextEditor;
@@ -51,7 +46,6 @@ function createEditCallback(editor, incrementor, options) {
             editBuilder,
             document,
             incrementor,
-            options,
         });
         selections.forEach((selection) => {
             if (isZeroLengthSelection(selection)) {
@@ -75,7 +69,7 @@ function isZeroLengthSelection(selection) {
 
 function tryGetRangeOfNumberBefore(selection, line) {
     const textBefore = line.text.substring(0, selection.anchor.character);
-    const numberBeforeAnchor = /\d+$/.exec(textBefore);
+    const numberBeforeAnchor = /-?\d+$/.exec(textBefore);
     if (numberBeforeAnchor) {
         const start = numberBeforeAnchor.index;
         const startPosition = selection.anchor.with({
@@ -88,7 +82,7 @@ function tryGetRangeOfNumberBefore(selection, line) {
 
 function tryGetRangeOfNumberAfter(selection, line) {
     const textAfter = line.text.substring(selection.anchor.character);
-    const numberAfterAnchor = /^\d+/.exec(textAfter);
+    const numberAfterAnchor = /^-?\d+/.exec(textAfter);
     if (numberAfterAnchor) {
         const end = selection.anchor.character + numberAfterAnchor[0].length;
         const endPosition = selection.anchor.with({
@@ -109,7 +103,7 @@ function replaceBeforeOrAfter({ document, selection, replace }) {
     }
 }
 
-function createReplacer({ editBuilder, document, incrementor, options }) {
+function createReplacer({ editBuilder, document, incrementor }) {
     let refValue;
     return (range) => {
         refValue = replaceInline({
@@ -118,7 +112,6 @@ function createReplacer({ editBuilder, document, incrementor, options }) {
             range,
             incrementor,
             refValue,
-            options,
         });
     };
 }
@@ -129,27 +122,15 @@ function replaceInline({
     range,
     incrementor,
     refValue,
-    options,
 }) {
     const selectionText = document.getText(range);
-    // cerco tutte le porzioni di stringa contenente valori numerici
-    // e li incremento considerando come valore iniziale il primo numero trovato
-    // cerco di mantenere
-    const replacedText = selectionText.replace(/\d+/g, (nn) => {
-        if (refValue === undefined) {
-            refValue = +nn;
-            // se devo skippare il primo valore esco subito
-            if (options.skipFirstNumber) {
-                return nn;
-            }
-        }
-        let val = (refValue = incrementor(refValue)).toString();
-        // se il valore incrementato ha una lunghezza inferiore della stringa nn
-        // presumo che nn sia preceduta da '0'
+    const replacedText = selectionText.replace(/-?\d+/g, (nn) => {
+        let val = incrementor(+nn).toString();
         if (val.length < nn.length) {
-            // aggiungo tanti '0' davanti al valore
+            //add many '0's in front of the value
             val = val.padStart(nn.length, '0');
         }
+
         return val;
     });
 
@@ -160,13 +141,9 @@ function replaceInline({
     return refValue;
 }
 
-function makeOptions({ skipFirstNumber, allowZeroLengthSelection } = {}) {
+function makeOptions({ allowZeroLengthSelection } = {}) {
     const config = vscode.workspace.getConfiguration('progressive');
     return {
-        skipFirstNumber:
-            skipFirstNumber === undefined
-                ? config.skipFirstNumber
-                : skipFirstNumber,
         allowZeroLengthSelection:
             allowZeroLengthSelection === undefined
                 ? config.allowZeroLengthSelection
@@ -183,17 +160,29 @@ async function askIncrementValue(executor, testValue) {
     }
 }
 
+async function askDecrementValue(executor, testValue) {
+    const increment =
+        +testValue ||
+        parseInt(await vscode.window.showInputBox(SHOW_INPUT_BOX_OPTIONS));
+    if (increment > 0) {
+        return executor(createDecrementor(increment));
+    }
+}
+
 function createIncrementor(increment) {
-    // sarà utile per future evoluzioni, ad esempio per valori float
     return (value) => value + increment;
+}
+
+function createDecrementor(increment) {
+    return (value) => value - increment;
 }
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 function activate(context) {
-    // implemento i comandi definiti nel package.json
-    // i comandi devono ritornare sempre altrimenti vscode non sa quando finiscono
-    // (e i test non funzionano)
+    //I implement the commands defined in the package.json
+    //commands must always return otherwise vscode doesn't know when they end
+    //(and the tests don't work)
     context.subscriptions.push(
         vscode.commands.registerCommand('progressive.incrementBy1', (options) =>
             execIncrementWith(createIncrementor(1), makeOptions(options))
@@ -211,6 +200,30 @@ function activate(context) {
             'progressive.incrementByInput',
             (options, testValue) =>
                 askIncrementValue(
+                    (incrementor) =>
+                        execIncrementWith(incrementor, makeOptions(options)),
+                    testValue
+                )
+        )
+    );
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('progressive.decrementBy1', (options) =>
+            execIncrementWith(createDecrementor(1), makeOptions(options))
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'progressive.decrementBy10',
+            (options) =>
+                execIncrementWith(createDecrementor(10), makeOptions(options))
+        )
+    );
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            'progressive.decrementByInput',
+            (options, testValue) =>
+                askDecrementValue(
                     (incrementor) =>
                         execIncrementWith(incrementor, makeOptions(options)),
                     testValue

@@ -1,29 +1,23 @@
 {
-    "name": "vscode-progressive-increment",
-    "displayName": "VSCode Progressive Increment",
-    "description": "Increments progressively integer values found in selection(s) by 1 or 10",
-    "version": "1.0.5",
-    "publisher": "narsenico",
+    "name": "vscode-progressive-increment-decrement",
+    "displayName": "VSCode Progressive Increment/Decrement",
+    "description": "Increments or decrements progressively integer values found in selection(s) by 1 or 10",
+    "version": "1.1.0",
+    "publisher": "kittenchilly",
     "icon": "icon.png",
     "engines": {
         "vscode": "^1.70.0"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/narsenico/vscode-progressive-increment.git"
+        "url": "https://github.com/kittenchilly/vscode-progressive-increment-decrement.git"
     },
     "bugs": {
-        "url": "https://github.com/narsenico/vscode-progressive-increment/issues",
-        "email": "not_amon-dev@yahoo.it"
+        "url": "https://github.com/kittenchilly/vscode-progressive-increment-decrement/issues"
     },
     "categories": [
         "Formatters",
         "Other"
-    ],
-    "activationEvents": [
-        "onCommand:progressive.incrementBy1",
-        "onCommand:progressive.incrementBy10",
-        "onCommand:progressive.incrementByInput"
     ],
     "license": "MIT",
     "main": "./extension",
@@ -40,6 +34,18 @@
             {
                 "command": "progressive.incrementByInput",
                 "title": "Progressive: increment by ..."
+            },
+            {
+                "command": "progressive.decrementBy1",
+                "title": "Progressive: decrement by 1"
+            },
+            {
+                "command": "progressive.decrementBy10",
+                "title": "Progressive: increment by 10"
+            },
+            {
+                "command": "progressive.decrementByInput",
+                "title": "Progressive: increment by ..."
             }
         ],
         "keybindings": [
@@ -54,16 +60,23 @@
                 "key": "ctrl+alt+shift+i",
                 "mac": "cmd+alt+shift+i",
                 "when": "editorTextFocus"
+            },
+            {
+                "command": "progressive.decrementBy1",
+                "key": "ctrl+alt+d",
+                "mac": "cmd+alt+d",
+                "when": "editorTextFocus"
+            },
+            {
+                "command": "progressive.decrementBy10",
+                "key": "ctrl+alt+shift+d",
+                "mac": "cmd+alt+shift+d",
+                "when": "editorTextFocus"
             }
         ],
         "configuration": {
-            "title": "VSCode Progressive Increment",
+            "title": "VSCode Progressive Increment/Decrement",
             "properties": {
-                "progressive.skipFirstNumber": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Skip first number in selection"
-                },
                 "progressive.allowZeroLengthSelection": {
                     "type": "boolean",
                     "default": false,
@@ -72,6 +85,7 @@
             }
         }
     },
+
     "scripts": {
         "lint": "eslint .",
         "pretest": "npm run lint",
@@ -80,14 +94,14 @@
         "vsce:publish": "vsce publish"
     },
     "devDependencies": {
-        "@types/vscode": "^1.70.0",
-        "@types/glob": "^7.2.0",
-        "@types/mocha": "^9.1.1",
-        "@types/node": "16.x",
-        "eslint": "^8.20.0",
-        "glob": "^8.0.3",
-        "mocha": "^10.0.0",
-        "typescript": "^4.7.4",
-        "@vscode/test-electron": "^2.1.5"
+        "@types/vscode": "^1.82.0",
+        "@types/glob": "^8.1.0",
+        "@types/mocha": "^10.0.1",
+        "@types/node": "20.x",
+        "eslint": "^8.49.0",
+        "glob": "^10.3.4",
+        "mocha": "^10.2.0",
+        "typescript": "^5.2.2",
+        "@vscode/test-electron": "^2.3.4"
     }
 }
